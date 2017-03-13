@@ -8,8 +8,13 @@ namespace JsonItems;
  * @author anton
  */
 class Writer extends File {
+
+  protected $empty = true;
+  protected $path;
+
   public function __construct($path) {
     $this->handle = fopen("compress.zlib://$path", 'w');
+    $this->path = $path;
     fwrite($this->handle, $this->header . "\n");
   }
 
@@ -18,10 +23,20 @@ class Writer extends File {
    * @param array $items
    */
   public function write($items) {
+    $boundary_length = strlen($this->boundary . "\n");
     foreach ($items as $item) {
-      $json = json_encode($item, JSON_UNESCAPED_UNICODE);
-      $length = strlen($json);
-      fwrite($this->handle, ",$length,\n$json\n");
+      $ok = true;
+      if ($this->empty) {
+        $this->empty = false;
+      } else {
+        $ok &= (fwrite($this->handle, $this->boundary . "\n") === $boundary_length);
+      }
+      $json = json_encode($item, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT) . "\n";
+      $this->checkJsonError();
+      $ok &= (fwrite($this->handle, $json) === strlen($json));
+      if (!$ok) {
+        throw new JsonItemsException("Unable to write file '$this->path'.");
+      }
     }
   }
 
@@ -29,7 +44,6 @@ class Writer extends File {
     fwrite($this->handle, ']');
     fclose($this->handle);
   }
-
 
   public function __destruct() {
     $this->close();

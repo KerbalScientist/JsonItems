@@ -11,7 +11,8 @@ namespace JsonItems;
  */
 class File {
   protected $handle;
-  protected $header = '["JsonItemsV1"';
+  protected $header = '["JsonItemsV2",';
+  protected $boundary = ',"===JsonItemsV2=see0faequ7jeijuW6eev===",';
 
   public static function reader($path, $assoc = false) {
     return new Reader($path, $assoc);
@@ -20,4 +21,13 @@ class File {
   public static function writer($path) {
     return new Writer($path);
   }
+
+  protected function checkJsonError() {
+    if (($error_code = json_last_error()) !== JSON_ERROR_NONE) {
+      throw new JsonItemsException("Json error: "
+          . json_last_error_msg() . " (code: $error_code)");
+    }
+  }
 }
+
+class JsonItemsException extends \Exception { }

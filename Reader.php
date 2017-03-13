@@ -24,23 +24,23 @@ class Reader extends File implements \Iterator {
     $this->handle = fopen("compress.zlib://$path", 'r');
     $header = trim(fgets($this->handle));
     if ($header !== $this->header) {
-      throw new Exception('Wrong file header.');
+      throw new JsonItemsException('Wrong file header.');
     }
     $this->next();
   }
 
   public function readNextItem() {
-    $line = fgets($this->handle);
-    if (!$line && $line === ']') {
-      return;
+    $json_item = "";
+    while (($line = fgets($this->handle)) && trim($line, " \t\n\r") !== $this->boundary) {
+      $json_item .= $line;
     }
-    $json_size = (int) trim($line, ", \n");
-    if (!$json_size) {
-      return;
+    if (!$line) {
+      // Последний элемент - нужно удалить конец массива.
+      $json_item = preg_replace('/\]\s*$/', '', $json_item);
     }
-    $json_item = fread($this->handle, $json_size);
-    fgets($this->handle);
-    return json_decode($json_item, $this->assoc);
+    $result = json_decode($json_item, $this->assoc);
+    $this->checkJsonError();
+    return $result;
   }
 
   public function current() {
