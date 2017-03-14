@@ -10,6 +10,7 @@ namespace JsonItems;
 class Reader extends File implements \Iterator {
 
   protected $current;
+  protected $valid = false;
   protected $path;
   protected $key = 0;
   protected $assoc;
@@ -21,6 +22,7 @@ class Reader extends File implements \Iterator {
   }
 
   protected function open($path) {
+    $this->close();
     $this->handle = fopen("compress.zlib://$path", 'r');
     if (!$this->handle) {
       throw new JsonItemsException("Cannot open file '$path' for reading.");
@@ -29,17 +31,22 @@ class Reader extends File implements \Iterator {
     if ($header !== $this->header) {
       throw new JsonItemsException('Wrong file header.');
     }
+    $this->valid = true;
     $this->next();
   }
 
   public function readNextItem() {
+    if (!$this->handle) {
+      $this->valid = false;
+    }
     $json_item = "";
     while (($line = fgets($this->handle)) && trim($line, " \t\n\r") !== $this->boundary) {
       $json_item .= $line;
     }
-    if (!$line) {
-      // Последний элемент - нужно удалить конец массива.
+    if ($line === FALSE) {
+      // Последний элемент - нужно удалить закрывающую скобку массива и закрыть файл.
       $json_item = preg_replace('/\]\s*$/', '', $json_item);
+      $this->close();
     }
     $result = json_decode($json_item, $this->assoc);
     $this->checkJsonError();
@@ -64,11 +71,18 @@ class Reader extends File implements \Iterator {
   }
 
   public function valid() {
-    return !is_null($this->current);
+    return $this->valid;
   }
 
   public function __destruct() {
-    fclose($this->handle);
+    $this->close();
+  }
+
+  public function close() {
+    if ($this->handle) {
+      fclose($this->handle);
+    }
+    $this->handle = false;
   }
 
 }
