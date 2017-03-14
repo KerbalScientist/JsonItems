@@ -22,6 +22,9 @@ class Reader extends File implements \Iterator {
 
   protected function open($path) {
     $this->handle = fopen("compress.zlib://$path", 'r');
+    if (!$this->handle) {
+      throw new JsonItemsException("Cannot open file '$path' for reading.");
+    }
     $header = trim(fgets($this->handle));
     if ($header !== $this->header) {
       throw new JsonItemsException('Wrong file header.');

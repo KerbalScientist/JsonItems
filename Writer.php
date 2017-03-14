@@ -14,6 +14,9 @@ class Writer extends File {
 
   public function __construct($path) {
     $this->handle = fopen("compress.zlib://$path", 'w');
+    if (!$this->handle) {
+      throw new JsonItemsException("Cannot open file '$path' for writing.");
+    }
     $this->path = $path;
     fwrite($this->handle, $this->header . "\n");
   }
