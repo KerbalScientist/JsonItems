@@ -29,7 +29,7 @@ class Reader extends File implements \Iterator {
     }
     $header = trim(fgets($this->handle));
     if ($header !== $this->header) {
-      throw new JsonItemsException('Wrong file header.');
+      throw new JsonItemsException("Wrong file header, expected '$this->header'.");
     }
     $this->valid = true;
     $this->next();
