@@ -1,5 +1,5 @@
 {
-  "name": "anton/jsonitems",
+  "name": "kerbalscientist/jsonitems",
   "description": "Simple PHP library, allowing to read and write large lists of small items from/to JSON file (custom format), without loading whole file to memory.",
   "autoload": {
       "psr-4": {"JsonItems\\": "src"}
