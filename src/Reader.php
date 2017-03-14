@@ -38,6 +38,7 @@ class Reader extends File implements \Iterator {
   public function readNextItem() {
     if (!$this->handle) {
       $this->valid = false;
+      return;
     }
     $json_item = "";
     while (($line = fgets($this->handle)) && trim($line, " \t\n\r") !== $this->boundary) {
