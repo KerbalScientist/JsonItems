@@ -44,8 +44,11 @@ class Writer extends File {
   }
 
   public function close() {
-    fwrite($this->handle, ']');
-    fclose($this->handle);
+    if ($this->handle) {
+      fwrite($this->handle, ']');
+      fclose($this->handle);
+      $this->handle = null;
+    }
   }
 
   public function __destruct() {
