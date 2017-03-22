@@ -48,6 +48,10 @@ class Reader extends File implements \Iterator {
       // Последний элемент - нужно удалить закрывающую скобку массива и закрыть файл.
       $json_item = preg_replace('/\]\s*$/', '', $json_item);
       $this->close();
+      if (strlen(trim($json_item)) == 0) {
+        $this->valid = false;
+        return;
+      }
     }
     $result = json_decode($json_item, $this->assoc);
     $this->checkJsonError();
